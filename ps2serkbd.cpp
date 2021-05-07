@@ -28,15 +28,16 @@ Ps2serkbd::Ps2serkbd(void)
 
 bool isAsciiShift(char c)
 {
-        if ((c >= 33 && c <= 38) /* !"#$%& */
-	 || (c >= 40 && c <= 43) 
-	 || (c >= 33 && c <= 38) 
-	 || (c == 58)            
-	 || (c == 60)            
-	 || (c >= 62 && c <= 90) 
-	 || (c == 94)            
-	 || (c == 95)            
-	 || (c >= 123)) {
+        if (
+	    (c >= 33 && c <= 38)   // !"#$%&
+	 || (c >= 40 && c <= 43)   // ()*+
+	 || (c >= 62 && c <= 90)   // >?@ABCDEFGHIJKLMNOPQRSTUVWXYZ
+	 || (c >= 123 && c <= 126) // {|}~
+	 || c == 58                // :
+	 || c == 60                // <
+	 || c == 94                // ^
+	 || c == 95                // =
+	) {
 		return true;
 	} else {
 		return false;
