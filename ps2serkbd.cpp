@@ -28,20 +28,16 @@ Ps2serkbd::Ps2serkbd(void)
 
 bool isAsciiShift(char c)
 {
-        if (
-	    (c >= 33 && c <= 38)   // !"#$%&
-	 || (c >= 40 && c <= 43)   // ()*+
-	 || (c >= 62 && c <= 90)   // >?@ABCDEFGHIJKLMNOPQRSTUVWXYZ
-	 || (c >= 123 && c <= 126) // {|}~
-	 || c == 58                // :
-	 || c == 60                // <
-	 || c == 94                // ^
-	 || c == 95                // =
-	) {
-		return true;
-	} else {
-		return false;
-	}
+        return (
+	    c >= 33 && c <= 38   // !"#$%&
+	 || c >= 40 && c <= 43   // ()*+
+	 || c >= 62 && c <= 90   // >?@ABCDEFGHIJKLMNOPQRSTUVWXYZ
+	 || c >= 123 && c <= 126 // {|}~
+	 || c == 58              // :
+	 || c == 60              // <
+	 || c == 94              // ^
+	 || c == 95              // _
+	);
 }
 
 void Ps2serkbd::emit(const char *scancode)
@@ -51,14 +47,12 @@ void Ps2serkbd::emit(const char *scancode)
 
 void Ps2serkbd::press(char c)
 {
-	if (c == '\t') {
-		Serial.write(PS2SERKBD_MAKE_TAB);
+	if (c < 32 || c > 126) {
 		return;
+	} else if (c == '\t') {
+		Serial.write(PS2SERKBD_MAKE_TAB);
 	} else if (c == '\n') {
 		Serial.write(PS2SERKBD_MAKE_ENTER);
-		return;
-	} else if (c < 32 || c > 126) {
-		return;
 	} else {
         	if (isAsciiShift(c)) {
 			Serial.write(PS2SERKBD_MAKE_LEFTSHIFT);
@@ -70,14 +64,12 @@ void Ps2serkbd::press(char c)
 
 void Ps2serkbd::release(char c)
 {
-	if (c == '\t') {
-		Serial.write(PS2SERKBD_BREAK_TAB);
+	if (c < 32 || c > 126) {
 		return;
+	} else if (c == '\t') {
+		Serial.write(PS2SERKBD_BREAK_TAB);
 	} else if (c == '\n') {
 		Serial.write(PS2SERKBD_BREAK_ENTER);
-		return;
-	} else if (c < 32 || c > 126) {
-		return;
 	} else {
 		Serial.write("\xf0");
 		Serial.write(pgm_read_byte(asciiMap + (c - 32)));
