@@ -12,12 +12,33 @@ BASE_URL = f'https://raw.githubusercontent.com/torvalds/linux/{LINUX_VERSION}'
 KEYCODES_URL = f'{BASE_URL}/include/uapi/linux/input-event-codes.h'
 SCANCODES_URL = f'{BASE_URL}/drivers/input/keyboard/atkbd.c'
 
-KEYCODES_FILE = KEYCODES_URL.split('/')[-1]
-SCANCODES_FILE = SCANCODES_URL.split('/')[-1]
+KEYCODES_FILE = 'input-event-codes.h'
+SCANCODES_FILE = 'atkbd.c'
 
 OUTPUT_SCANCODES = 'scancodes.h'
 OUTPUT_ASCII = 'ascii.h'
 
+ascii2keycode = [                                                       # Dec
+    'SPACE',     '1',          'APOSTROPHE', '3',          '4',         # 32 - 36
+    '5',         '7',          'APOSTROPHE', '9',          '0',         # 37 - 41
+    '8',         'EQUAL',      'COMMA',      'MINUS',      'DOT',       # 42 - 46
+    'SLASH',     '0',          '1',          '2',          '3',         # 47 - 51
+    '4',         '5',          '6',          '7',          '8',         # 52 - 56
+    '9',         'SEMICOLON',  'SEMICOLON',  'COMMA',      'EQUAL',     # 57 - 61
+    'DOT',       'SLASH',      '2',          'A',          'B',         # 62 - 66
+    'C',         'D',          'E',          'F',          'G',         # 67 - 71
+    'H',         'I',          'J',          'K',          'L',         # 72 - 76
+    'M',         'N',          'O',          'P',          'Q',         # 77 - 81
+    'R',         'S',          'T',          'U',          'V',         # 82 - 86
+    'W',         'X',          'Y',          'Z',          'LEFTBRACE', # 87 - 91
+    'BACKSLASH', 'RIGHTBRACE', '6',          'MINUS',      'GRAVE',     # 92 - 96
+    'A',         'B',          'C',          'D',          'E',         # 97 - 101
+    'F',         'G',          'H',          'I',          'J',         # 102 - 106
+    'K',         'L',          'M',          'N',          'O',         # 107 - 111
+    'P',         'Q',          'R',          'S',          'T',         # 112 - 116
+    'U',         'V',          'W',          'X',          'Y',         # 117 - 121
+    'Z',         'LEFTBRACE',  'BACKSLASH',  'RIGHTBRACE', 'GRAVE'      # 122 - 126
+]
 
 def download(url, filename):
     if not os.path.exists(filename):
@@ -157,28 +178,47 @@ def generateScancodes(filename, keys):
 
     with open(filename, 'w') as f:
         f.write('#ifndef __PS2SERKBD_SCANCODES_H__\n');
-        f.write('#define __PS2SERKBD_SCANCODES_H__\n');
-        f.write('\n')
+        f.write('#define __PS2SERKBD_SCANCODES_H__\n\n');
 
-        f.write(f"{'#define PS2SERKBD_BREAK': <{indent}} \"\\xf0\"\n")
-        f.write('\n')
+        f.write(f"{'#define PS2SERKBD_BREAK': <{indent}} \"\\xf0\"\n\n")
 
         for keycode in range(len(keys)):
-            try:
+            if keys[keycode]:
                 name, scancode = keys[keycode]
-            except TypeError:
-                continue
+                f.write(f'{"#define PS2SERKBD_MAKE_" + name: <{indent}} "{scancode}"\n')
+                if scancode.startswith('\\xe0'):
+                    scancode = scancode[:4] + '\\xf0' + scancode[4:]
+                else:
+                    scancode = '\\xf0' + scancode
+                f.write(f'{"#define PS2SERKBD_BREAK_" + name: <{indent}} "{scancode}"\n\n')
 
-            f.write(f'{"#define PS2SERKBD_" + name: <{indent}} "{scancode}"\n')
-            f.write(f'{"#define PS2SERKBD_MAKE_" + name: <{indent}} "{scancode}"\n')
-            if scancode.startswith('\\xe0'):
-                scancode = scancode[:4] + '\\xf0' + scancode[4:]
-            else:
-                scancode = '\\xf0' + scancode
-            f.write(f'{"#define PS2SERKBD_BREAK_" + name: <{indent}} "{scancode}"\n')
-            f.write('\n')
+        f.write('// Values used in asciiMap\n')
+        for keycode in range(len(keys)):
+            if keys[keycode]:
+                name, scancode = keys[keycode]
+                if name in ascii2keycode:
+                    f.write(f"{'#define PS2SERKBD_' + name: <{indent}} '{scancode}'\n")
+        f.write('\n')
 
         f.write('#endif /* !__PS2SERKBD_SCANCODES_H__ */\n');
+
+def generateAscii(filename, keys):
+    with open(filename, 'w') as f:
+        f.write('#ifndef __PS2SERKBD_ASCII_H__\n');
+        f.write('#define __PS2SERKBD_ASCII_H__\n\n');
+        f.write('#include "scancodes.h"\n\n');
+        f.write('#define PS2SERKBD_ASCIIMAP_GET(c) (pgm_read_byte(asciiMap + ((c) - 32)))\n\n')
+
+        f.write('PROGMEM static const char asciiMap[95] = {\n')
+        f.write(f'  /* Oct    Dec   Hex   Char  */\n')
+        f.write(f'  /* 040    32    20    SPACE */ PS2SERKBD_SPACE,\n')
+        for i in range(1, len(ascii2keycode) - 1):
+            n = i + ord(' ')
+            f.write(f'  /* {n:03o}   {n:3}    {n:X}    {chr(n)}     */'
+                    f' PS2SERKBD_{ascii2keycode[i]},\n')
+        f.write(f'  /* 176   126    7E    `     */ PS2SERKBD_GRAVE\n')
+        f.write('};\n\n')
+        f.write('#endif /* !__PS2SERKBD_ASCII_H__ */\n');
 
 download(KEYCODES_URL, KEYCODES_FILE)
 download(SCANCODES_URL, SCANCODES_FILE)
@@ -202,3 +242,5 @@ for keycode in range(len(keys)):
 if __name__ == '__main__':
     generateScancodes(OUTPUT_SCANCODES, keys)
     print(f'{OUTPUT_SCANCODES} generated.')
+    generateAscii(OUTPUT_ASCII, keys)
+    print(f'{OUTPUT_ASCII} generated.')
