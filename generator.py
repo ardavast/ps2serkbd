@@ -15,8 +15,8 @@ SCANCODES_URL = f'{BASE_URL}/drivers/input/keyboard/atkbd.c'
 KEYCODES_FILE = 'input-event-codes.h'
 SCANCODES_FILE = 'atkbd.c'
 
-OUTPUT_SCANCODES = 'scancodes.h'
-OUTPUT_ASCII = 'ascii.h'
+OUTPUT_SCANCODES = 'src/scancodes.h'
+OUTPUT_ASCII = 'src/ascii.h'
 
 ascii2keycode = [                                                       # Dec
     'SPACE',     '1',          'APOSTROPHE', '3',          '4',         # 32 - 36
