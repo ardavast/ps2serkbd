@@ -32,8 +32,21 @@ def initpp(filename):
     # 1. Break the input file into lines
     with open(filename) as f:
         lines = f.readlines()
+    lines = [line.strip() for line in lines]
 
-    # 2. TODO Convert trigraphs
+    # 2. Convert trigraphs
+    for old, new in (
+        ('??(', '['),
+        ('??)', ']'),
+        ('??<', '{'),
+        ('??>', '}'),
+        ('??=', '#'),
+        ('??/', '\\'),
+        ("??'", '^'),
+        ('??!', '|'),
+        ('??-', '~')
+    ):
+        lines = [line.replace(old, new) for line in lines]
 
     # 3. Merge continued lines
     processedLines = []
