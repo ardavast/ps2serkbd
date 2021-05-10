@@ -152,15 +152,15 @@ def getKeycodes(filename):
     return keycodes
 
 def generateScancodes(filename, keys):
-    maxLen = max([len(x[0]) for x in keys if x]) + len('_BREAK_')
+    indent = (len('#define PS2SERKBD_BREAK_') +
+              max([len(x[0]) for x in keys if x]))
 
     with open(filename, 'w') as f:
         f.write('#ifndef __PS2SERKBD_SCANCODES_H__\n');
         f.write('#define __PS2SERKBD_SCANCODES_H__\n');
         f.write('\n')
 
-        spaces = ' ' * (maxLen - len('BREAK'))
-        f.write(f'#define PS2SERKBD_BREAK{spaces}"\\xf0"\n');
+        f.write(f"{'#define PS2SERKBD_BREAK': <{indent}} \"\\xf0\"\n")
         f.write('\n')
 
         for keycode in range(len(keys)):
@@ -169,16 +169,13 @@ def generateScancodes(filename, keys):
             except TypeError:
                 continue
 
-            spaces = ' ' * (maxLen - len(name))
-            f.write(f'#define PS2SERKBD_{name}{spaces}"{scancode}"\n')
-            spaces = ' ' * (maxLen - len(name) - len('MAKE_'))
-            f.write(f'#define PS2SERKBD_MAKE_{name}{spaces}"{scancode}"\n')
-            spaces = ' ' * (maxLen - len(name) - len('BREAK_'))
+            f.write(f'{"#define PS2SERKBD_" + name: <{indent}} "{scancode}"\n')
+            f.write(f'{"#define PS2SERKBD_MAKE_" + name: <{indent}} "{scancode}"\n')
             if scancode.startswith('\\xe0'):
                 scancode = scancode[:4] + '\\xf0' + scancode[4:]
             else:
                 scancode = '\\xf0' + scancode
-            f.write(f'#define PS2SERKBD_BREAK_{name}{spaces}"{scancode}"\n')
+            f.write(f'{"#define PS2SERKBD_BREAK_" + name: <{indent}} "{scancode}"\n')
             f.write('\n')
 
         f.write('#endif /* !__PS2SERKBD_SCANCODES_H__ */\n');
