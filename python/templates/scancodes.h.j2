@@ -1,0 +1,23 @@
+#ifndef __PS2SERKBD_SCANCODES_H__
+#define __PS2SERKBD_SCANCODES_H__
+
+{%- set indent = 22 %}
+
+{{ '#define PS2SERKBD_{:<{indent}} "{}"'.format('BREAK', '\\xf0', indent=indent) }}
+{% for (name, scancode) in keys %}
+{{ '#define PS2SERKBD_{:<{indent}} "{}"'.format('MAKE_' + name, scancode, indent=indent) }}
+{%- if scancode.startswith('\\xe0') %}
+{{ '#define PS2SERKBD_{:<{indent}} "\\xe0\\xf0{}"'.format('BREAK_' + name, scancode[-4:], indent=indent) }}
+{%-  else %}
+{{ '#define PS2SERKBD_{:<{indent}} "\\xf0{}"'.format('BREAK_' + name, scancode, indent=indent) }}
+{%- endif %}
+{% endfor %}
+// Values used in asciiMap
+{%- for (name, scancode) in keys %}
+{%- if name in ascii2keycode %}
+{{ "#define PS2SERKBD_{:<{indent}} '{}'".format(name, scancode, indent=indent) }}
+{%- endif %}
+{%- endfor %}
+
+#endif /* !__PS2SERKBD_SCANCODES_H__ */
+

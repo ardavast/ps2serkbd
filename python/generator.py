@@ -5,6 +5,9 @@ import os
 import re
 import sys
 import urllib.request
+from pathlib import Path
+
+from jinja2 import Template
 
 LINUX_VERSION = 'v5.12'
 
@@ -12,11 +15,13 @@ BASE_URL = f'https://raw.githubusercontent.com/torvalds/linux/{LINUX_VERSION}'
 KEYCODES_URL = f'{BASE_URL}/include/uapi/linux/input-event-codes.h'
 SCANCODES_URL = f'{BASE_URL}/drivers/input/keyboard/atkbd.c'
 
-KEYCODES_FILE = 'input-event-codes.h'
-SCANCODES_FILE = 'atkbd.c'
-
-OUTPUT_SCANCODES = 'src/scancodes.h'
-OUTPUT_ASCII = 'src/ascii.h'
+BASEPATH = Path(__file__).parent.absolute()
+KEYCODES_FILE = BASEPATH.joinpath('input-event-codes.h')
+SCANCODES_FILE = BASEPATH.joinpath('atkbd.c')
+OUTPUT_SCANCODES_TEMPLATE = BASEPATH.joinpath('scancodes.template.h')
+TEMPLATES_DIR = BASEPATH.joinpath('templates')
+OUTPUT_SCANCODES = BASEPATH.parent.joinpath('src', 'scancodes.h')
+OUTPUT_ASCII = BASEPATH.parent.joinpath('src', 'ascii.h')
 
 ascii2keycode = [                                                       # Dec
     'SPACE',     '1',          'APOSTROPHE', '3',          '4',         # 32 - 36
@@ -146,7 +151,7 @@ def getScancodes(lines):
             continue
 
         if inTable:
-            # process only lines consistng of comma-separated digits
+            # Process only lines consistng of comma-separated digits
             if not re.search('[^ ,\d]', line):
                 for line in line.split(','):
                     line = line.strip()
@@ -173,55 +178,25 @@ def getKeycodes(filename):
     return keycodes
 
 def generateScancodes(filename, keys):
-    indent = (len('#define PS2SERKBD_BREAK_') +
-              max([len(x[0]) for x in keys if x]))
-
+    template = Template(Path(TEMPLATES_DIR).joinpath('scancodes.h.j2').read_text())
     with open(filename, 'w') as f:
-        f.write('#ifndef __PS2SERKBD_SCANCODES_H__\n');
-        f.write('#define __PS2SERKBD_SCANCODES_H__\n\n');
+        f.write(template.render({'keys': list(filter(None, keys)),
+                                 'ascii2keycode': ascii2keycode}))
 
-        f.write(f"{'#define PS2SERKBD_BREAK': <{indent}} \"\\xf0\"\n\n")
-
-        for keycode in range(len(keys)):
-            if keys[keycode]:
-                name, scancode = keys[keycode]
-                f.write(f'{"#define PS2SERKBD_MAKE_" + name: <{indent}} "{scancode}"\n')
-                if scancode.startswith('\\xe0'):
-                    scancode = scancode[:4] + '\\xf0' + scancode[4:]
-                else:
-                    scancode = '\\xf0' + scancode
-                f.write(f'{"#define PS2SERKBD_BREAK_" + name: <{indent}} "{scancode}"\n\n')
-
-        f.write('// Values used in asciiMap\n')
-        for keycode in range(len(keys)):
-            if keys[keycode]:
-                name, scancode = keys[keycode]
-                if name in ascii2keycode:
-                    f.write(f"{'#define PS2SERKBD_' + name: <{indent}} '{scancode}'\n")
-        f.write('\n')
-
-        f.write('#endif /* !__PS2SERKBD_SCANCODES_H__ */\n');
+#    indent = (len('#define PS2SERKBD_BREAK_') +
+#              max([len(x[0]) for x in keys if x]))
 
 def generateAscii(filename, keys):
+    template = Template(Path(TEMPLATES_DIR).joinpath('ascii.h.j2').read_text())
     with open(filename, 'w') as f:
-        f.write('#ifndef __PS2SERKBD_ASCII_H__\n');
-        f.write('#define __PS2SERKBD_ASCII_H__\n\n');
-        f.write('#include "scancodes.h"\n\n');
-        f.write('#define PS2SERKBD_ASCIIMAP_GET(c) (pgm_read_byte(asciiMap + ((c) - 32)))\n\n')
+        f.write(template.render({'ascii2keycode': ascii2keycode}))
 
-        f.write('PROGMEM static const char asciiMap[95] = {\n')
-        f.write(f'  /* Oct    Dec   Hex   Char  */\n')
-        f.write(f'  /* 040    32    20    SPACE */ PS2SERKBD_SPACE,\n')
-        for i in range(1, len(ascii2keycode) - 1):
-            n = i + ord(' ')
-            f.write(f'  /* {n:03o}   {n:3}    {n:X}    {chr(n)}     */'
-                    f' PS2SERKBD_{ascii2keycode[i]},\n')
-        f.write(f'  /* 176   126    7E    `     */ PS2SERKBD_GRAVE\n')
-        f.write('};\n\n')
-        f.write('#endif /* !__PS2SERKBD_ASCII_H__ */\n');
+if not KEYCODES_FILE.exists():
+    download(KEYCODES_URL, KEYCODES_FILE)
 
-download(KEYCODES_URL, KEYCODES_FILE)
-download(SCANCODES_URL, SCANCODES_FILE)
+if not SCANCODES_FILE.exists():
+    download(SCANCODES_URL, SCANCODES_URL)
+
 keycodes = getKeycodes(KEYCODES_FILE)
 scancodes = getScancodes(SCANCODES_FILE)
 

@@ -5,7 +5,7 @@
 
 #define PS2SERKBD_ASCIIMAP_GET(c) (pgm_read_byte(asciiMap + ((c) - 32)))
 
-PROGMEM static const char asciiMap[95] = {
+PROGMEM static const char asciiMap[] = {
   /* Oct    Dec   Hex   Char  */
   /* 040    32    20    SPACE */ PS2SERKBD_SPACE,
   /* 041    33    21    !     */ PS2SERKBD_1,
@@ -101,7 +101,7 @@ PROGMEM static const char asciiMap[95] = {
   /* 173   123    7B    {     */ PS2SERKBD_LEFTBRACE,
   /* 174   124    7C    |     */ PS2SERKBD_BACKSLASH,
   /* 175   125    7D    }     */ PS2SERKBD_RIGHTBRACE,
-  /* 176   126    7E    `     */ PS2SERKBD_GRAVE
+  /* 176   126    7E    ~     */ PS2SERKBD_GRAVE,
 };
 
 #endif /* !__PS2SERKBD_ASCII_H__ */
