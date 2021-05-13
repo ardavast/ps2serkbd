@@ -178,7 +178,8 @@ def getKeycodes(filename):
     return keycodes
 
 def generateScancodes(filename, keys):
-    template = Template(Path(TEMPLATES_DIR).joinpath('scancodes.h.j2').read_text())
+    template = Template(Path(TEMPLATES_DIR).joinpath('scancodes.h.j2').read_text(),
+                        trim_blocks=True)
     with open(filename, 'w') as f:
         f.write(template.render({'keys': list(filter(None, keys)),
                                  'ascii2keycode': ascii2keycode}))
@@ -187,7 +188,8 @@ def generateScancodes(filename, keys):
 #              max([len(x[0]) for x in keys if x]))
 
 def generateAscii(filename, keys):
-    template = Template(Path(TEMPLATES_DIR).joinpath('ascii.h.j2').read_text())
+    template = Template(Path(TEMPLATES_DIR).joinpath('ascii.h.j2').read_text(),
+                        trim_blocks=True, lstrip_blocks=True)
     with open(filename, 'w') as f:
         f.write(template.render({'ascii2keycode': ascii2keycode}))
 
