@@ -13,20 +13,19 @@ void loop() {
 		snprintf(s, 4, "%x", i / 16);
 		ps2serkbd.print(s);
 	}
-	ps2serkbd.print('\n');
+	ps2serkbd.print("\n");
 
 	for (int i = 32; i < 127; i++) {
 		snprintf(s, 4, "%x", i % 16);
 		ps2serkbd.print(s);
 	}
-	ps2serkbd.print('\n');
+	ps2serkbd.print("\n");
 
 	for (int i = 32; i < 127; i++) {
-		ps2serkbd.print(char(i));
+		snprintf(s, 4, "%c", char(i));
+		ps2serkbd.print(s);
 	}
-	ps2serkbd.print('\n');
-
-	ps2serkbd.print('\n');
+	ps2serkbd.print("\n\n");
 
 	delay(5000);
 }

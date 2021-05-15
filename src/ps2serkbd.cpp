@@ -80,13 +80,6 @@ void Ps2serkbd::release(char c)
 	}
 }
 
-void Ps2serkbd::print(char s)
-{
-	press(s);
-	delay(5);
-	release(s);
-}
-
 void Ps2serkbd::print(const char *s)
 {
 	for (; *s; s++) {
