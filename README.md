@@ -19,10 +19,6 @@ scancodes over the serial port, so it allows you to emulate a keyboard using
 any Arduino, with the following caveats:
 - It works only on Linux.
 - You may need to add a udev rule in some cases, see [below](#udev).
-- It currently works only with the default serial port.  Additional serial
-ports (for example on an Arduino Mega) and
-[SoftwareSerial](https://www.arduino.cc/en/Reference/softwareSerial) will be
-supported in a later version.
 
 ## Host setup
 On the host computer you need to attach the keyboard driver to the serial port.
@@ -40,6 +36,16 @@ sudo inputattach --daemon --ps2serkbd /dev/ttyACM0
 
 ## API:
 The library provides the following functions:
+- begin() - Set the serial port that the object will use.
+```
+Ps2serkbd ps2serkbd;
+
+void setup() {
+	Serial.begin(9600);
+	ps2serkbd.begin(&Serial);
+}
+```
+
 - emit() - sends a single scancode to the host.  This is just a wrapper over
   Serial.write().  The possible scancodes are defined in
   [src/scancodes.h](src/scancodes.h).

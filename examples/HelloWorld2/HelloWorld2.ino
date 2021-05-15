@@ -17,10 +17,11 @@ const char *scancodes[34] {
 	PS2SERKBD_MAKE_ENTER, PS2SERKBD_BREAK_ENTER                                               // \n
 };
 
-Ps2serkbd ps2serkbd = Ps2serkbd();
+Ps2serkbd ps2serkbd;
 
 void setup() {
 	Serial.begin(9600);
+	ps2serkbd.begin(&Serial);
 }
 
 void loop() {

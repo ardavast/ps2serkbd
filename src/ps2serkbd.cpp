@@ -26,6 +26,11 @@ Ps2serkbd::Ps2serkbd(void)
 {
 }
 
+void Ps2serkbd::begin(Stream *stream)
+{
+	this->stream = stream;
+}
+
 bool isAsciiShift(char c)
 {
         return (
@@ -42,40 +47,40 @@ bool isAsciiShift(char c)
 
 void Ps2serkbd::emit(const char *scancode)
 {
-	Serial.write(scancode);
+	stream->write(scancode);
 }
 
 void Ps2serkbd::press(char c)
 {
 	if (c == '\t') {
-		Serial.write(PS2SERKBD_MAKE_TAB);
+		stream->write(PS2SERKBD_MAKE_TAB);
 	} else if (c == '\n') {
-		Serial.write(PS2SERKBD_MAKE_ENTER);
+		stream->write(PS2SERKBD_MAKE_ENTER);
 	} else if (c < 32 || c > 126) {
 		return;
 	} else {
         	if (isAsciiShift(c)) {
-			Serial.write(PS2SERKBD_MAKE_LEFTSHIFT);
+			stream->write(PS2SERKBD_MAKE_LEFTSHIFT);
 		}
 
-		Serial.write(pgm_read_byte(asciiMap + (c - 32)));
+		stream->write(pgm_read_byte(asciiMap + (c - 32)));
 	}
 }
 
 void Ps2serkbd::release(char c)
 {
 	if (c == '\t') {
-		Serial.write(PS2SERKBD_BREAK_TAB);
+		stream->write(PS2SERKBD_BREAK_TAB);
 	} else if (c == '\n') {
-		Serial.write(PS2SERKBD_BREAK_ENTER);
+		stream->write(PS2SERKBD_BREAK_ENTER);
 	} else if (c < 32 || c > 126) {
 		return;
 	} else {
-		Serial.write("\xf0");
-		Serial.write(pgm_read_byte(asciiMap + (c - 32)));
+		stream->write("\xf0");
+		stream->write(pgm_read_byte(asciiMap + (c - 32)));
 
         	if (isAsciiShift(c)) {
-			Serial.write(PS2SERKBD_BREAK_LEFTSHIFT);
+			stream->write(PS2SERKBD_BREAK_LEFTSHIFT);
 		}
 	}
 }
