@@ -197,7 +197,7 @@ if not KEYCODES_FILE.exists():
     download(KEYCODES_URL, KEYCODES_FILE)
 
 if not SCANCODES_FILE.exists():
-    download(SCANCODES_URL, SCANCODES_URL)
+    download(SCANCODES_URL, SCANCODES_FILE)
 
 keycodes = getKeycodes(KEYCODES_FILE)
 scancodes = getScancodes(SCANCODES_FILE)
