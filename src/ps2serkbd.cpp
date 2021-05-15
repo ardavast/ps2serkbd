@@ -80,11 +80,13 @@ void Ps2serkbd::release(char c)
 	}
 }
 
-void Ps2serkbd::print(const char *s)
+void Ps2serkbd::print(const char *s, unsigned long charDelay,
+		      unsigned long breakDelay)
 {
 	for (; *s; s++) {
 		press(*s);
-		delay(5);
+		delay(breakDelay);
 		release(*s);
+		delay(charDelay);
 	}
 }

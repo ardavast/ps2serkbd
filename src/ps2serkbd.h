@@ -11,8 +11,8 @@ public:
 	void emit(const char *scancode);
 	void press(char c);
 	void release(char c);
-	void print(char s);
-	void print(const char *s);
+	void print(const char *s, unsigned long charDelay = 5,
+		   unsigned long breakDelay = 0);
 };
 
 #endif /* !__PS2SERKBD_H__ */
