@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
 import re
-import sys
 import urllib.request
 from pathlib import Path
-
 from jinja2 import Template
 
 LINUX_VERSION = 'v5.12'
@@ -46,7 +43,7 @@ ascii2keycode = [                                                       # Dec
 ]
 
 def download(url, filename):
-    if not os.path.exists(filename):
+    if not Path(filename).exists():
         data = urllib.request.urlopen(url).read()
         with open(filename, "wb") as f:
             f.write(data)
