@@ -81,10 +81,12 @@ The library provides the following functions:
   ```
 
 ## Examples
-- HelloWorld1 - Prints "Hello, World!" every 5 seconds using the emit() function.
-- HelloWorld2 - Prints "Hello, World!" every 5 seconds using the print()
-  function.
-- AsciiTable - Prints a table of the printable ASCII characters every 5 seconds.
+- [HelloWorld1](examples/HelloWorld1/HelloWorld1.ino) - Prints "Hello, World!"
+  every 5 seconds using the emit() function.
+- [HelloWorld2](examples/HelloWorld2/HelloWorld2.ino) - Prints "Hello, World!"
+  every 5 seconds using the print() function.
+- [AsciiTable](examples/AsciiTable/AsciiTable.ino) - Prints a table of the
+  printable ASCII characters every 5 seconds.
 
 ## udev
 udev can override the scancode-to-keycode mapping to enable additional functions.
