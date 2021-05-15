@@ -1,29 +1,26 @@
 # ps2serkbd
 This library allows you to use any Arduino as a keyboard.
 
-If you want to emulate a keyboard with an Arduino your best option is to use the
-official
+If you want to emulate a keyboard with an Arduino your best option is to use
+the official
 [Keyboard](https://www.arduino.cc/reference/en/language/functions/usb/keyboard/)
 library.  However it only works with boards which support the USB HID Library,
 like
 [Leonardo](https://www.arduino.cc/en/Main/Arduino_BoardLeonardo) and
 [Micro](https://store.arduino.cc/arduino-micro).  It doesn't work with many
 popular boards such as
-[Arduion Uno](https://store.arduino.cc/arduino-uno-rev3) or
-[Arduino Mega](https://store.arduino.cc/arduino-mega-2560-rev3).
+[Arduino Uno](https://store.arduino.cc/arduino-uno-rev3) or
+[Arduino Mega](https://store.arduino.cc/arduino-mega-2560-rev3) unless you
+install a custom firmware such as
+[HoodLoader2](https://github.com/NicoHood/HoodLoader2).
 
-If you have a different Arduino, like an
-[HoodLoader2](https://github.com/NicoHood/HoodLoader2) firmware and use the
-[Keyboard](https://www.arduino.cc/reference/en/language/functions/usb/keyboard/)
-library.  
-
-The ps2serkbd library was created to solve this problem, it sends keyboard
+The ps2serkbd library was created to solve this problem.  It sends keyboard
 scancodes over the serial port, so it allows you to emulate a keyboard using
 any Arduino, with the following caveats:
 - It works only on Linux.
 - You may need to add a udev rule in some cases, see [below](#udev).
-- It currently works only with the default serial port.  Additional serial ports
-(for example on an Arduino Mega) and
+- It currently works only with the default serial port.  Additional serial
+ports (for example on an Arduino Mega) and
 [SoftwareSerial](https://www.arduino.cc/en/Reference/softwareSerial) will be
 supported in a later version.
 
@@ -54,7 +51,7 @@ The library provides the following functions:
   ps2serkbd.emit(PS2SERKBD_MAKE_LEFTCTRL);
   ps2serkbd.emit(PS2SERKBD_MAKE_LEFTALT);
   ps2serkbd.emit(PS2SERKBD_MAKE_DELETE);
-  ps2serkbd.emit(PS2SERKBD_BREAK_LCTRL);
+  ps2serkbd.emit(PS2SERKBD_BREAK_LEFTCTRL);
   ps2serkbd.emit(PS2SERKBD_BREAK_LEFTALT);
   ps2serkbd.emit(PS2SERKBD_BREAK_DELETE);
   ```
@@ -78,10 +75,9 @@ The library provides the following functions:
   ps2serkbd.release('a'); // Release a
   ps2serkbd.release('A'); // Release shift and a
   ```
-- print() - sends the codes for a given character or a string.
+- print() - sends the codes for a string.
   ```
-  ps2serkbd.print('A'); 
-  ps2serkbd.print("Hello, world!\n"); 
+  ps2serkbd.print("Hello, world!\n");
   ```
 
 ## Examples
