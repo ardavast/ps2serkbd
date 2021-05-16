@@ -4,21 +4,13 @@
 import re
 import urllib.request
 from pathlib import Path
-from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader
 
 LINUX_VERSION = 'v5.12'
-
 BASE_URL = f'https://raw.githubusercontent.com/torvalds/linux/{LINUX_VERSION}'
-KEYCODES_URL = f'{BASE_URL}/include/uapi/linux/input-event-codes.h'
-SCANCODES_URL = f'{BASE_URL}/drivers/input/keyboard/atkbd.c'
-
 BASEPATH = Path(__file__).parent.absolute()
-KEYCODES_FILE = BASEPATH.joinpath('input-event-codes.h')
-SCANCODES_FILE = BASEPATH.joinpath('atkbd.c')
-OUTPUT_SCANCODES_TEMPLATE = BASEPATH.joinpath('scancodes.template.h')
 TEMPLATES_DIR = BASEPATH.joinpath('templates')
-OUTPUT_SCANCODES = BASEPATH.parent.joinpath('src', 'scancodes.h')
-OUTPUT_ASCII = BASEPATH.parent.joinpath('src', 'ascii.h')
+SRC_DIR = BASEPATH.parent.joinpath('src')
 
 ascii2keycode = [                                                       # Dec
     'SPACE',     '1',          'APOSTROPHE', '3',          '4',         # 32 - 36
@@ -42,11 +34,11 @@ ascii2keycode = [                                                       # Dec
     'Z',         'LEFTBRACE',  'BACKSLASH',  'RIGHTBRACE', 'GRAVE'      # 122 - 126
 ]
 
-def download(url, filename):
-    if not Path(filename).exists():
+
+def download(url, path):
+    if not path.exists():
         data = urllib.request.urlopen(url).read()
-        with open(filename, "wb") as f:
-            f.write(data)
+        path.write_bytes(data)
 
 def initpp(filename):
     # Try to follow the order described in:
@@ -137,8 +129,11 @@ def initpp(filename):
 
     return lines
 
-def getScancodes(lines):
-    lines = initpp(lines)
+def getScancodes():
+    filename = BASEPATH.joinpath('atkbd.c')
+    download(f'{BASE_URL}/drivers/input/keyboard/atkbd.c', filename)
+    lines = initpp(filename)
+
     scancodes = []
     inTable = False
     for line in lines:
@@ -158,8 +153,11 @@ def getScancodes(lines):
             if line == '};':
                 return scancodes
 
-def getKeycodes(filename):
+def getKeycodes():
+    filename = BASEPATH.joinpath('input-event-codes.h')
+    download(f'{BASE_URL}/include/uapi/linux/input-event-codes.h', filename)
     lines = initpp(filename)
+
     # We are only interesed in macros of the form:
     # #define KEY_SOMETHING 0-255
     keycodes = [''] * 256
@@ -174,30 +172,22 @@ def getKeycodes(filename):
                 keycodes[keycode] = name
     return keycodes
 
-def generateScancodes(filename, keys):
-    template = Template(Path(TEMPLATES_DIR).joinpath('scancodes.h.j2').read_text(),
-                        trim_blocks=True)
-    with open(filename, 'w') as f:
-        f.write(template.render({'keys': list(filter(None, keys)),
-                                 'ascii2keycode': ascii2keycode}))
+def generateHeaders():
+    env = Environment(loader=FileSystemLoader(TEMPLATES_DIR),
+                      trim_blocks=True,
+                      lstrip_blocks=True)
 
-#    indent = (len('#define PS2SERKBD_BREAK_') +
-#              max([len(x[0]) for x in keys if x]))
+    context = {
+        'keys': list(filter(None, keys)),
+        'ascii2keycode': ascii2keycode
+    }
 
-def generateAscii(filename, keys):
-    template = Template(Path(TEMPLATES_DIR).joinpath('ascii.h.j2').read_text(),
-                        trim_blocks=True, lstrip_blocks=True)
-    with open(filename, 'w') as f:
-        f.write(template.render({'ascii2keycode': ascii2keycode}))
+    for filename in 'scancodes.h', 'ascii.h':
+        template = env.get_template(f'{filename}.j2')
+        SRC_DIR.joinpath(filename).write_text(template.render(context))
 
-if not KEYCODES_FILE.exists():
-    download(KEYCODES_URL, KEYCODES_FILE)
-
-if not SCANCODES_FILE.exists():
-    download(SCANCODES_URL, SCANCODES_FILE)
-
-keycodes = getKeycodes(KEYCODES_FILE)
-scancodes = getScancodes(SCANCODES_FILE)
+keycodes = getKeycodes()
+scancodes = getScancodes()
 
 keys = keycodes[:]
 for keycode in range(len(keys)):
@@ -214,7 +204,4 @@ for keycode in range(len(keys)):
         keys[keycode] = None
 
 if __name__ == '__main__':
-    generateScancodes(OUTPUT_SCANCODES, keys)
-    print(f'{OUTPUT_SCANCODES} generated.')
-    generateAscii(OUTPUT_ASCII, keys)
-    print(f'{OUTPUT_ASCII} generated.')
+    generateHeaders()
